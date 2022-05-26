@@ -23,23 +23,14 @@ app = dash.Dash()
 
 states = pd.read_csv("states.csv")
 states["State"] = states["State"].str.replace("Of", "of")
-#statePlotData = states[states['SchoolName' == 'GEORGETOWN UNIVERSITY']].copy()
-
-# statePlot = px.bar(statePlotData, x='Year', 
-#                    y='number_grads', 
-#                    color = 'State', 
-#                    title = "Top three states by employment location")
+schools= states['SchoolName'].to_list().copy()
 
 app.layout = html.Div(id = 'parent', children = [
-    html.H1(id = 'H1', children = 'Styling using html components', style = {'textAlign':'center',\
+    html.H1(id = 'H1', children = 'ABA Employment Data Dashboard', style = {'textAlign':'center',\
                                             'marginTop':40,'marginBottom':40}),
 
         dcc.Dropdown( id = 'dropdown',
-        options = [
-            {'label':'Yale', 'value':'YALE UNIVERSITY' },
-            {'label': 'Georgetown', 'value':'GEORGETOWN UNIVERSITY'},
-            {'label': 'Harvard', 'value':'HARVARD UNIVERSITY'},
-            ],
+        options = schools,
         value = 'GEORGETOWN UNIVERSITY'),
         dcc.Graph(id = 'state_plot')
     ])
@@ -49,12 +40,13 @@ app.layout = html.Div(id = 'parent', children = [
 def graph_update(dropdown_value):
     print(dropdown_value)
     statePlotData = states[states['SchoolName'] == dropdown_value].copy()
-    fig = go.Figure([go.Scatter(x = statePlotData['Year'], y = statePlotData['number_grads'],\
-                     line = dict(color = 'firebrick', width = 4))
-                     ])
-    fig.update_layout(title = 'states prices over time',
-                      xaxis_title = 'graduation year',
-                      yaxis_title = 'grads in stat'
+    fig = px.bar(statePlotData, x = 'Year', y = 'number_grads', color = 'State')
+    # fig = go.Figure([go.Scatter(x = statePlotData['Year'], y = statePlotData['number_grads'],\
+    #                  line = dict(color = 'firebrick', width = 4))
+    #                  ])
+    fig.update_layout(title = 'Top three states',
+                      xaxis_title = 'year of graduation',
+                      yaxis_title = 'number of graduates in state'
                       )
     return fig  
 
