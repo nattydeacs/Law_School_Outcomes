@@ -22,22 +22,61 @@ from dash.dependencies import Input, Output
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']# Embed the style to the dashabord:
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+####################################
+#data import and prep
+####################################
+
+#state chart data
 states = pd.read_csv("states.csv")
 states["State"] = states["State"].str.replace("Of", "of")
 schools= states['SchoolName'].to_list().copy()
 
+
+#employer charts data
 employer = pd.read_csv("employerClean.csv")
+
+clerkBL = employer.copy()
+
+clerkBL = clerkBL.groupby(['SchoolName', 'Year', 'employer_type'], as_index = False).agg({'number_grads': 'sum'})
+clerkBL['% of grads'] = round(100 * clerkBL['number_grads']/
+        clerkBL.groupby(['SchoolName','Year'])['number_grads'].transform('sum'), 1)
+
+clerkBL = clerkBL[(clerkBL["employer_type"] == 'Law Firm 500+') |
+                  (clerkBL["employer_type"] == 'ClerkshipsFederal')|
+                  (clerkBL["employer_type"] == 'Law Firm 251-500')]
+
+
 
 employer["employer"] = np.where(employer.employer_type.str.contains('Law Firm'), 'Law Firm', employer["employer_type"])
 employer["employer"] = np.where(employer.employer.str.contains('Clerkship'), 'Clerkship', employer["employer"])
 employer = employer.groupby(['SchoolName', 'Year', 'employer'], as_index = False).agg({'number_grads': 'sum'})
 employer['% of grads'] = round(100*employer['number_grads']/employer.groupby(['SchoolName','Year'])['number_grads'].transform('sum'), 1)
 
+#employment charts data
+
+employment = pd.read_csv("employmentClean.csv")
+
+employment["timeTermType"] = employment['time'] + employment['term'] + employment['employment_type']
+
+employment = employment.groupby(['SchoolName', 'Year', 'timeTermType'], as_index = False).agg({'number_grads': 'sum'})
+employment['% of grads'] = round(100 * employment['number_grads']/
+        employment.groupby(['SchoolName','Year'])['number_grads'].transform('sum'), 1)
+
+barPassData = employment[(employment['timeTermType'] == 'fulltimelongtermEmployed_BarPassageRequired')| 
+                         (employment['timeTermType'] == 'fulltimelongtermEmployed_JDAdvantage') |
+                         (employment['timeTermType'] =='gradSchoolgradSchoolEnrolledInGraduateStudies')].copy()
+
+barPassData["timeTermType"] = barPassData["timeTermType"].str.replace("fulltimelongtermEmployed_BarPassageRequired", "Bar Passage Required")
+barPassData["timeTermType"] = barPassData["timeTermType"].str.replace("fulltimelongtermEmployed_JDAdvantage", "JD Advantage")
+barPassData["timeTermType"] = barPassData["timeTermType"].str.replace("gradSchoolgradSchoolEnrolledInGraduateStudies", "Graduate School")
 
 
 
+####################################
+#dashboard
+####################################
 
-
+#create html objects
 schoolFilter = dcc.Dropdown( id = 'dropdown',
          options = schools,
          value = 'GEORGETOWN UNIVERSITY')
@@ -53,29 +92,29 @@ topright = dcc.Graph(
         className="six columns" 
     )
 
+bottomleft = dcc.Graph(
+        id='employment_plot',
+        figure = 'employment_plot',
+        className="six columns" 
+    )
+
+bottomright = dcc.Graph(
+        id='ClerkBL_plot',
+        figure = 'ClerkBL_plot',
+        className="six columns" 
+    )
+
 
 header = html.H2(children="ABA Law School Employment Data Dashboard")
 row1 = html.Div(children = schoolFilter)
 row2 = html.Div(children=[topleft, topright])
-layout = html.Div(children=[header, row1, row2], style={"text-align": "center"})
+row3 = html.Div(children=[bottomleft, bottomright])
+layout = html.Div(children=[header, row1, row2, row3], style={"text-align": "center"})
 app.layout = layout
-
-
-
-# app.layout = html.Div(id = 'parent', children = [
-#     html.H1(id = 'H1', children = 'ABA Employment Data Dashboard', style = {'textAlign':'center',\
-#                                             'marginTop':40,'marginBottom':40}),
-
-#         dcc.Dropdown( id = 'dropdown',
-#         options = schools,
-#         value = 'GEORGETOWN UNIVERSITY'),
-#         dcc.Graph(id = 'state_plot'),
-#         dcc.Graph(id = 'employer_comparison_plot')
-#     ])
     
 @app.callback(Output(component_id='state_plot', component_property= 'figure'),
               [Input(component_id='dropdown', component_property= 'value')])
-def graph_update(dropdown_value):
+def states_graph_update(dropdown_value):
     print(dropdown_value)
     statePlotData = states[states['SchoolName'] == dropdown_value].copy()
     fig = px.bar(statePlotData, x = 'Year', y = 'number_grads', color = 'State')
@@ -97,6 +136,35 @@ def employer_graph_update(dropdown_value):
                       yaxis_title = '% of employed graduates at employer type'
                       )
     return fig  
+
+@app.callback(Output(component_id='ClerkBL_plot', component_property= 'figure'),
+              [Input(component_id='dropdown', component_property= 'value')])
+
+def clerkBL_graph_update(dropdown_value):
+    print(dropdown_value)
+    clerkBLPlotData = clerkBL[clerkBL['SchoolName'] == dropdown_value].copy()
+    fig = px.line(clerkBLPlotData, x = 'Year', y = '% of grads', color = 'employer_type',
+                          title = "% employed of graduates working for selected employers",
+                          labels={
+                          "Year": "graduation year"
+                      })
+    return fig 
+
+@app.callback(Output(component_id='employment_plot', component_property= 'figure'),
+              [Input(component_id='dropdown', component_property= 'value')])
+    
+def employment_graph_update(dropdown_value):
+    print(dropdown_value)
+    barPassPlotData = barPassData[barPassData['SchoolName'] == dropdown_value].copy()
+    fig = px.area(data_frame= barPassPlotData, x = 'Year', y = '% of grads', color= 'timeTermType',
+                            title = '% of graduates with long term, full time employment in selected categories',
+                            labels={
+                           "Year": "graduation year",
+                           "timeTermType": "employment type"
+                       })
+    return fig 
+
+
 
 
 if __name__ == '__main__': 
