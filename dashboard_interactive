@@ -19,21 +19,59 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 
-app = dash.Dash()
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']# Embed the style to the dashabord:
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 states = pd.read_csv("states.csv")
 states["State"] = states["State"].str.replace("Of", "of")
 schools= states['SchoolName'].to_list().copy()
 
-app.layout = html.Div(id = 'parent', children = [
-    html.H1(id = 'H1', children = 'ABA Employment Data Dashboard', style = {'textAlign':'center',\
-                                            'marginTop':40,'marginBottom':40}),
+employer = pd.read_csv("employerClean.csv")
 
-        dcc.Dropdown( id = 'dropdown',
-        options = schools,
-        value = 'GEORGETOWN UNIVERSITY'),
-        dcc.Graph(id = 'state_plot')
-    ])
+employer["employer"] = np.where(employer.employer_type.str.contains('Law Firm'), 'Law Firm', employer["employer_type"])
+employer["employer"] = np.where(employer.employer.str.contains('Clerkship'), 'Clerkship', employer["employer"])
+employer = employer.groupby(['SchoolName', 'Year', 'employer'], as_index = False).agg({'number_grads': 'sum'})
+employer['% of grads'] = round(100*employer['number_grads']/employer.groupby(['SchoolName','Year'])['number_grads'].transform('sum'), 1)
+
+
+
+
+
+
+schoolFilter = dcc.Dropdown( id = 'dropdown',
+         options = schools,
+         value = 'GEORGETOWN UNIVERSITY')
+
+topleft = dcc.Graph(
+        id='state_plot',
+        figure = 'state_plot',
+        className="six columns" 
+    )
+topright = dcc.Graph(
+        id='employer_comparison_plot',
+        figure = 'employer_comparison_plot',
+        className="six columns" 
+    )
+
+
+header = html.H2(children="ABA Law School Employment Data Dashboard")
+row1 = html.Div(children = schoolFilter)
+row2 = html.Div(children=[topleft, topright])
+layout = html.Div(children=[header, row1, row2], style={"text-align": "center"})
+app.layout = layout
+
+
+
+# app.layout = html.Div(id = 'parent', children = [
+#     html.H1(id = 'H1', children = 'ABA Employment Data Dashboard', style = {'textAlign':'center',\
+#                                             'marginTop':40,'marginBottom':40}),
+
+#         dcc.Dropdown( id = 'dropdown',
+#         options = schools,
+#         value = 'GEORGETOWN UNIVERSITY'),
+#         dcc.Graph(id = 'state_plot'),
+#         dcc.Graph(id = 'employer_comparison_plot')
+#     ])
     
 @app.callback(Output(component_id='state_plot', component_property= 'figure'),
               [Input(component_id='dropdown', component_property= 'value')])
@@ -41,15 +79,24 @@ def graph_update(dropdown_value):
     print(dropdown_value)
     statePlotData = states[states['SchoolName'] == dropdown_value].copy()
     fig = px.bar(statePlotData, x = 'Year', y = 'number_grads', color = 'State')
-    # fig = go.Figure([go.Scatter(x = statePlotData['Year'], y = statePlotData['number_grads'],\
-    #                  line = dict(color = 'firebrick', width = 4))
-    #                  ])
     fig.update_layout(title = 'Top three states',
                       xaxis_title = 'year of graduation',
                       yaxis_title = 'number of graduates in state'
                       )
     return fig  
 
+@app.callback(Output(component_id='employer_comparison_plot', component_property= 'figure'),
+              [Input(component_id='dropdown', component_property= 'value')])
+
+def employer_graph_update(dropdown_value):
+    print(dropdown_value)
+    employerPlotData = employer[employer['SchoolName'] == dropdown_value].copy()
+    fig = px.bar(employerPlotData, x = 'Year', y = '% of grads', color = 'employer')
+    fig.update_layout(title = 'Top employers',
+                      xaxis_title = 'year of graduation',
+                      yaxis_title = '% of employed graduates at employer type'
+                      )
+    return fig  
 
 
 if __name__ == '__main__': 
