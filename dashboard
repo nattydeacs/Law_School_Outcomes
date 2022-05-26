@@ -138,19 +138,19 @@ graph4 = dcc.Graph(
         figure=clerkBLplot,
         className="six columns"
     )
-schoolFilter = dcc.Dropdown(
-            options=[
-            {'label':i, 'value':i} for i in employment['SchoolName'].unique()
-        ],
-            id = 'school_dropdown'
-        )
+# schoolFilter = dcc.Dropdown(
+#             options=[
+#             {'label':i, 'value':i} for i in employment['SchoolName'].unique()
+#         ],
+#             id = 'school_dropdown'
+#         )
 
 # setup the header
 header = html.H2(children="ABA Law School Employment Data Dashboard")
-row1 = html.Div(children = schoolFilter)
+#row1 = html.Div(children = schoolFilter)
 row2 = html.Div(children=[graph1, graph2])
 row3 = html.Div(children=[graph3, graph4])# setup & apply the layout
-layout = html.Div(children=[header, row1, row2, row3], style={"text-align": "center"})
+layout = html.Div(children=[header, row2, row3], style={"text-align": "center"})
 app.layout = layout
 
 if __name__ == "__main__":
@@ -158,5 +158,5 @@ if __name__ == "__main__":
     
 print("hi")
 
-=
+
 

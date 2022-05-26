@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu May 26 09:24:39 2022
+
+@author: natdeacon
+"""
+
+####################
+#import packages and data
+####################
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+import plotly.io as pio
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+
+app = dash.Dash()
+
+states = pd.read_csv("states.csv")
+states["State"] = states["State"].str.replace("Of", "of")
+#statePlotData = states[states['SchoolName' == 'GEORGETOWN UNIVERSITY']].copy()
+
+# statePlot = px.bar(statePlotData, x='Year', 
+#                    y='number_grads', 
+#                    color = 'State', 
+#                    title = "Top three states by employment location")
+
+app.layout = html.Div(id = 'parent', children = [
+    html.H1(id = 'H1', children = 'Styling using html components', style = {'textAlign':'center',\
+                                            'marginTop':40,'marginBottom':40}),
+
+        dcc.Dropdown( id = 'dropdown',
+        options = [
+            {'label':'Yale', 'value':'YALE UNIVERSITY' },
+            {'label': 'Georgetown', 'value':'GEORGETOWN UNIVERSITY'},
+            {'label': 'Harvard', 'value':'HARVARD UNIVERSITY'},
+            ],
+        value = 'GEORGETOWN UNIVERSITY'),
+        dcc.Graph(id = 'state_plot')
+    ])
+    
+@app.callback(Output(component_id='state_plot', component_property= 'figure'),
+              [Input(component_id='dropdown', component_property= 'value')])
+def graph_update(dropdown_value):
+    print(dropdown_value)
+    statePlotData = states[states['SchoolName'] == dropdown_value].copy()
+    fig = go.Figure([go.Scatter(x = statePlotData['Year'], y = statePlotData['number_grads'],\
+                     line = dict(color = 'firebrick', width = 4))
+                     ])
+    fig.update_layout(title = 'states prices over time',
+                      xaxis_title = 'graduation year',
+                      yaxis_title = 'grads in stat'
+                      )
+    return fig  
+
+
+
+if __name__ == '__main__': 
+    app.run_server()
+    
