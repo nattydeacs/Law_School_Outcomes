@@ -109,7 +109,7 @@ header = html.H2(children="ABA Law School Employment Data Dashboard")
 row1 = html.Div(children = schoolFilter)
 row2 = html.Div(children=[topleft, topright])
 row3 = html.Div(children=[bottomleft, bottomright])
-layout = html.Div(children=[header, row1, row2, row3], style={"text-align": "center"})
+layout = html.Div(children=[header, row1, row2, row3], style={"text-align": "left"})
 app.layout = layout
     
 @app.callback(Output(component_id='state_plot', component_property= 'figure'),
@@ -117,10 +117,12 @@ app.layout = layout
 def states_graph_update(dropdown_value):
     print(dropdown_value)
     statePlotData = states[states['SchoolName'] == dropdown_value].copy()
-    fig = px.bar(statePlotData, x = 'Year', y = 'number_grads', color = 'State')
+    fig = px.bar(statePlotData, x = 'Year', y = 'number_grads', color = 'State',
+                 color_discrete_sequence=px.colors.qualitative.G10,
+                 template="simple_white")
     fig.update_layout(title = 'Top three states',
                       xaxis_title = 'year of graduation',
-                      yaxis_title = 'number of graduates in state'
+                      yaxis_title = '# of graduates employed in state'
                       )
     return fig  
 
@@ -130,7 +132,9 @@ def states_graph_update(dropdown_value):
 def employer_graph_update(dropdown_value):
     print(dropdown_value)
     employerPlotData = employer[employer['SchoolName'] == dropdown_value].copy()
-    fig = px.bar(employerPlotData, x = 'Year', y = '% of grads', color = 'employer')
+    fig = px.bar(employerPlotData, x = 'Year', y = '% of grads', color = 'employer',
+                 color_discrete_sequence=px.colors.qualitative.G10,
+                 template="simple_white")
     fig.update_layout(title = 'Top employers',
                       xaxis_title = 'year of graduation',
                       yaxis_title = '% of employed graduates at employer type'
@@ -144,10 +148,13 @@ def clerkBL_graph_update(dropdown_value):
     print(dropdown_value)
     clerkBLPlotData = clerkBL[clerkBL['SchoolName'] == dropdown_value].copy()
     fig = px.line(clerkBLPlotData, x = 'Year', y = '% of grads', color = 'employer_type',
-                          title = "% employed of graduates working for selected employers",
-                          labels={
-                          "Year": "graduation year"
-                      })
+                          title = "% employed of graduates working for selected employers (fulltime,longterm)",
+                          color_discrete_sequence=px.colors.qualitative.G10,
+                          template="simple_white")
+    fig.update_layout(
+                      xaxis_title = 'year of graduation',
+                      yaxis_title = '% of employed graduates at employer type'
+                      )
     return fig 
 
 @app.callback(Output(component_id='employment_plot', component_property= 'figure'),
@@ -158,6 +165,8 @@ def employment_graph_update(dropdown_value):
     barPassPlotData = barPassData[barPassData['SchoolName'] == dropdown_value].copy()
     fig = px.area(data_frame= barPassPlotData, x = 'Year', y = '% of grads', color= 'timeTermType',
                             title = '% of graduates with long term, full time employment in selected categories',
+                            color_discrete_sequence=px.colors.qualitative.G10,
+                            template="simple_white", 
                             labels={
                            "Year": "graduation year",
                            "timeTermType": "employment type"

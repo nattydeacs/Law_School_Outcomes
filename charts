@@ -97,15 +97,21 @@ employerPlotData = employerPlotData.groupby(['SchoolName', 'Year', 'employer'], 
 employerPlotData['% of grads'] = round(100*employerPlotData['number_grads']/employerPlotData.groupby(['SchoolName','Year'])['number_grads'].transform('sum'), 1)
 employer_comparison = px.bar(employerPlotData,
               x='Year', y='% of grads', color = 'employer',
+              color_discrete_sequence=px.colors.qualitative.G10,
+              template="simple_white", 
               title = 'Employer graduates breakdown, 10 months post-graduation',
               labels={
              "Year": "graduation year"
          })
 employer_comparison
 
+
+
 ####################
 #federal clerkships & BL plot
 ####################
+
+
 clerkBL = employer[(employer.SchoolName.isin(schoolinput)) & 
                                 (employer.Year.isin(yearinputs))].copy()
 
@@ -119,6 +125,7 @@ clerkBL = clerkBL[(clerkBL["employer_type"] == 'Law Firm 500+') |
 
 clerkBLplot = px.line(clerkBL, x = 'Year', y = '% of grads', color = 'employer_type',
                       title = "% of graduates working in 'Big Law' or Federal Clerkships, 10 months post-graduation",
+                      color_discrete_sequence=px.colors.qualitative.G10,
                       labels={
                      "Year": "graduation year"
                  })
