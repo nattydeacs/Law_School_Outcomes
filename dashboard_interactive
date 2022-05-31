@@ -81,35 +81,46 @@ schoolFilter = dcc.Dropdown( id = 'dropdown',
          options = schools,
          value = 'GEORGETOWN UNIVERSITY')
 
-topleft = dcc.Graph(
+bottomright = dcc.Graph(
         id='state_plot',
         figure = 'state_plot',
-        className="six columns" 
+        className="five columns" 
     )
 topright = dcc.Graph(
         id='employer_comparison_plot',
         figure = 'employer_comparison_plot',
-        className="six columns" 
+        className="five columns" 
+    )
+
+topleft = dcc.Graph(
+        id='employment_plot',
+        figure = 'employment_plot',
+        className="seven columns" 
     )
 
 bottomleft = dcc.Graph(
-        id='employment_plot',
-        figure = 'employment_plot',
-        className="six columns" 
-    )
-
-bottomright = dcc.Graph(
         id='ClerkBL_plot',
         figure = 'ClerkBL_plot',
-        className="six columns" 
+        className="seven columns" 
     )
 
 
-header = html.H2(children="ABA Law School Employment Data Dashboard")
+header = html.H2(children="ABA Law School Employment Data Dashboard (Beta)", style={'font-size': '28px'})
+footer = html.H2(children="Disclaimer: I created this dashboard in my free time and it has not yet undergone extensive QA checks. Please reach out to me at natdeacon@gmail.com if you experience any issues. ", style={'font-size': '16px'})
+
+
+linktoaba = html.Div([
+    html.A("ABA survey information", href='https://www.abarequireddisclosures.org/employmentoutcomes.aspx', target="_blank")
+])
+
+linktorepo = html.Div([
+    html.A("Dashboard source data and code", href='https://github.com/nattydeacs/Law_School_Outcomes', target="_blank")
+])
+
 row1 = html.Div(children = schoolFilter)
 row2 = html.Div(children=[topleft, topright])
 row3 = html.Div(children=[bottomleft, bottomright])
-layout = html.Div(children=[header, row1, row2, row3], style={"text-align": "left"})
+layout = html.Div(children=[header,linktoaba, linktorepo,  row1, row2, row3, footer], style={"text-align": "left"})
 app.layout = layout
     
 @app.callback(Output(component_id='state_plot', component_property= 'figure'),
