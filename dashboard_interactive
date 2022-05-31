@@ -27,13 +27,13 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 ####################################
 
 #state chart data
-states = pd.read_csv("states.csv")
+states = pd.read_csv("consolidated_data_long/statesLong.csv")
 states["State"] = states["State"].str.replace("Of", "of")
 schools= states['SchoolName'].to_list().copy()
 
 
 #employer charts data
-employer = pd.read_csv("employerClean.csv")
+employer = pd.read_csv("consolidated_data_long/employerLong.csv")
 
 clerkBL = employer.copy()
 
@@ -54,7 +54,7 @@ employer['% of grads'] = round(100*employer['number_grads']/employer.groupby(['S
 
 #employment charts data
 
-employment = pd.read_csv("employmentClean.csv")
+employment = pd.read_csv("consolidated_data_long/employmentLong.csv")
 
 employment["timeTermType"] = employment['time'] + employment['term'] + employment['employment_type']
 
