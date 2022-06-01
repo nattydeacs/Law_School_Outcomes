@@ -15,4 +15,4 @@ This folder contains the output of the jupyter notebooks from the cleaning scrip
 
 ## dashboard_interactive
 
-This script creates a dash dashboard using the data from the "consolidated_data_long" folder.
+This script creates a dash dashboard using the data from the "consolidated_data_long" folder. Note that this script creates a local version of the dashboard and does not deploy it online. For deployment, I used the Heroku and PyCharm in line with the instrucitons here: https://www.youtube.com/watch?v=Gv910_b5ID0.
